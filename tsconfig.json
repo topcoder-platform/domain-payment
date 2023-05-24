@@ -15,19 +15,13 @@
       "@Domain*": ["src/domain/*"],
       "@Helper/*": ["src/helper/*"],
       "@Service/*": ["src/service/*"],
-      "@Model/*": ["src/models/*"]
+      "@Model/*": ["src/models/*"],
+      "@Schema/*": ["src/schema/*"],
+      "@Interface/*": ["src/interfaces/*"],
+      "@Common/*": ["src/common/*"]
     }
   },
   "include": ["typings/global.d.ts", "src/**/*"],
-  "exclude": [
-    "node_modules",
-    "src/models",
-    "src/grpc/models/rdb",
-    "src/grpc/models/nosql"
-  ],
-  "references": [
-    { "path": "src/models" },
-    { "path": "src/grpc/models/rdb" },
-    { "path": "src/grpc/models/nosql" }
-  ]
+  "exclude": ["node_modules", "src/models", "src/grpc/models/rdb", "src/grpc/models/nosql"],
+  "references": [{ "path": "src/models" }, { "path": "src/grpc/models/rdb" }, { "path": "src/grpc/models/nosql" }]
 }

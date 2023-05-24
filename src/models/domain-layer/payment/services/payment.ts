@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
-import { LookupCriteria, ScanRequest, ScanResult } from "../../../common/common";
+import { LookupCriteria, ScanRequest, ScanResult } from "@topcoder-framework/lib-common";
 import { CreatePaymentInput, Payment, UpdatePaymentInput } from "../payment";
 
 export type PaymentService = typeof PaymentService;
