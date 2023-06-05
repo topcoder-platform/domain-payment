@@ -1,14 +1,14 @@
 /* eslint-disable */
+import { LookupCriteria } from "@topcoder-framework/lib-common";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
-import { LookupCriteria } from "../../common/common";
-import { PaymentDetailList } from "./payment_detail";
 
 export enum PaymentType {
   PAYMENT_TYPE_UNSPECIFIED = 0,
   PAYMENT_TYPE_WINNER = 1,
   PAYMENT_TYPE_COPILOT = 2,
   PAYMENT_TYPE_REVIEWER = 3,
+  PAYMENT_TYPE_CONTEST_PAYMENT = 4,
   UNRECOGNIZED = -1,
 }
 
@@ -26,6 +26,9 @@ export function paymentTypeFromJSON(object: any): PaymentType {
     case 3:
     case "PAYMENT_TYPE_REVIEWER":
       return PaymentType.PAYMENT_TYPE_REVIEWER;
+    case 4:
+    case "PAYMENT_TYPE_CONTEST_PAYMENT":
+      return PaymentType.PAYMENT_TYPE_CONTEST_PAYMENT;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -43,6 +46,8 @@ export function paymentTypeToJSON(object: PaymentType): string {
       return "PAYMENT_TYPE_COPILOT";
     case PaymentType.PAYMENT_TYPE_REVIEWER:
       return "PAYMENT_TYPE_REVIEWER";
+    case PaymentType.PAYMENT_TYPE_CONTEST_PAYMENT:
+      return "PAYMENT_TYPE_CONTEST_PAYMENT";
     case PaymentType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -58,10 +63,12 @@ export interface Payment {
     | number
     | undefined;
   /** DATETIME YEAR TO FRACTION (3) */
-  createDate: string;
+  createDate?:
+    | string
+    | undefined;
+  /** DATETIME YEAR TO FRACTION (3) */
   modifyDate?: string | undefined;
   hasGlobalAd?: boolean | undefined;
-  details?: PaymentDetailList | undefined;
 }
 
 export interface PaymentList {
@@ -74,6 +81,8 @@ export interface Payee {
 
 export interface Payable {
   amount: number;
+  grossAmount?: number | undefined;
+  totalAmount?: number | undefined;
 }
 
 export interface TaskPayment {
@@ -93,6 +102,7 @@ export interface ChallengePayment {
   payable?: Payable;
   dueInDays?: number | undefined;
   desc: string;
+  installmentNumber: number;
 }
 
 export interface CreatePaymentInput {
@@ -103,7 +113,7 @@ export interface CreatePaymentInput {
 }
 
 export interface UpdatePaymentInput {
-  lookupCriteria: LookupCriteria[];
+  lookupCriteria?: LookupCriteria;
   updateInput?: UpdatePaymentInput_UpdateInput;
 }
 
@@ -118,10 +128,9 @@ function createBasePayment(): Payment {
     mostRecentPaymentDetailId: 0,
     referralPaymentId: undefined,
     payReferrer: undefined,
-    createDate: "",
+    createDate: undefined,
     modifyDate: undefined,
     hasGlobalAd: undefined,
-    details: undefined,
   };
 }
 
@@ -142,7 +151,7 @@ export const Payment = {
     if (message.payReferrer !== undefined) {
       writer.uint32(40).int32(message.payReferrer);
     }
-    if (message.createDate !== "") {
+    if (message.createDate !== undefined) {
       writer.uint32(50).string(message.createDate);
     }
     if (message.modifyDate !== undefined) {
@@ -150,9 +159,6 @@ export const Payment = {
     }
     if (message.hasGlobalAd !== undefined) {
       writer.uint32(64).bool(message.hasGlobalAd);
-    }
-    if (message.details !== undefined) {
-      PaymentDetailList.encode(message.details, writer.uint32(74).fork()).ldelim();
     }
     return writer;
   },
@@ -188,9 +194,6 @@ export const Payment = {
         case 8:
           message.hasGlobalAd = reader.bool();
           break;
-        case 9:
-          message.details = PaymentDetailList.decode(reader, reader.uint32());
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -206,10 +209,9 @@ export const Payment = {
       mostRecentPaymentDetailId: isSet(object.mostRecentPaymentDetailId) ? Number(object.mostRecentPaymentDetailId) : 0,
       referralPaymentId: isSet(object.referralPaymentId) ? Number(object.referralPaymentId) : undefined,
       payReferrer: isSet(object.payReferrer) ? Number(object.payReferrer) : undefined,
-      createDate: isSet(object.createDate) ? String(object.createDate) : "",
+      createDate: isSet(object.createDate) ? String(object.createDate) : undefined,
       modifyDate: isSet(object.modifyDate) ? String(object.modifyDate) : undefined,
       hasGlobalAd: isSet(object.hasGlobalAd) ? Boolean(object.hasGlobalAd) : undefined,
-      details: isSet(object.details) ? PaymentDetailList.fromJSON(object.details) : undefined,
     };
   },
 
@@ -224,8 +226,6 @@ export const Payment = {
     message.createDate !== undefined && (obj.createDate = message.createDate);
     message.modifyDate !== undefined && (obj.modifyDate = message.modifyDate);
     message.hasGlobalAd !== undefined && (obj.hasGlobalAd = message.hasGlobalAd);
-    message.details !== undefined &&
-      (obj.details = message.details ? PaymentDetailList.toJSON(message.details) : undefined);
     return obj;
   },
 
@@ -236,12 +236,9 @@ export const Payment = {
     message.mostRecentPaymentDetailId = object.mostRecentPaymentDetailId ?? 0;
     message.referralPaymentId = object.referralPaymentId ?? undefined;
     message.payReferrer = object.payReferrer ?? undefined;
-    message.createDate = object.createDate ?? "";
+    message.createDate = object.createDate ?? undefined;
     message.modifyDate = object.modifyDate ?? undefined;
     message.hasGlobalAd = object.hasGlobalAd ?? undefined;
-    message.details = (object.details !== undefined && object.details !== null)
-      ? PaymentDetailList.fromPartial(object.details)
-      : undefined;
     return message;
   },
 };
@@ -345,13 +342,19 @@ export const Payee = {
 };
 
 function createBasePayable(): Payable {
-  return { amount: 0 };
+  return { amount: 0, grossAmount: undefined, totalAmount: undefined };
 }
 
 export const Payable = {
   encode(message: Payable, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.amount !== 0) {
       writer.uint32(13).float(message.amount);
+    }
+    if (message.grossAmount !== undefined) {
+      writer.uint32(21).float(message.grossAmount);
+    }
+    if (message.totalAmount !== undefined) {
+      writer.uint32(29).float(message.totalAmount);
     }
     return writer;
   },
@@ -366,6 +369,12 @@ export const Payable = {
         case 1:
           message.amount = reader.float();
           break;
+        case 2:
+          message.grossAmount = reader.float();
+          break;
+        case 3:
+          message.totalAmount = reader.float();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -375,18 +384,26 @@ export const Payable = {
   },
 
   fromJSON(object: any): Payable {
-    return { amount: isSet(object.amount) ? Number(object.amount) : 0 };
+    return {
+      amount: isSet(object.amount) ? Number(object.amount) : 0,
+      grossAmount: isSet(object.grossAmount) ? Number(object.grossAmount) : undefined,
+      totalAmount: isSet(object.totalAmount) ? Number(object.totalAmount) : undefined,
+    };
   },
 
   toJSON(message: Payable): unknown {
     const obj: any = {};
     message.amount !== undefined && (obj.amount = message.amount);
+    message.grossAmount !== undefined && (obj.grossAmount = message.grossAmount);
+    message.totalAmount !== undefined && (obj.totalAmount = message.totalAmount);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Payable>, I>>(object: I): Payable {
     const message = createBasePayable();
     message.amount = object.amount ?? 0;
+    message.grossAmount = object.grossAmount ?? undefined;
+    message.totalAmount = object.totalAmount ?? undefined;
     return message;
   },
 };
@@ -496,6 +513,7 @@ function createBaseChallengePayment(): ChallengePayment {
     payable: undefined,
     dueInDays: undefined,
     desc: "",
+    installmentNumber: 0,
   };
 }
 
@@ -521,6 +539,9 @@ export const ChallengePayment = {
     }
     if (message.desc !== "") {
       writer.uint32(58).string(message.desc);
+    }
+    if (message.installmentNumber !== 0) {
+      writer.uint32(64).sint32(message.installmentNumber);
     }
     return writer;
   },
@@ -553,6 +574,9 @@ export const ChallengePayment = {
         case 7:
           message.desc = reader.string();
           break;
+        case 8:
+          message.installmentNumber = reader.sint32();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -570,6 +594,7 @@ export const ChallengePayment = {
       payable: isSet(object.payable) ? Payable.fromJSON(object.payable) : undefined,
       dueInDays: isSet(object.dueInDays) ? Number(object.dueInDays) : undefined,
       desc: isSet(object.desc) ? String(object.desc) : "",
+      installmentNumber: isSet(object.installmentNumber) ? Number(object.installmentNumber) : 0,
     };
   },
 
@@ -582,6 +607,7 @@ export const ChallengePayment = {
     message.payable !== undefined && (obj.payable = message.payable ? Payable.toJSON(message.payable) : undefined);
     message.dueInDays !== undefined && (obj.dueInDays = Math.round(message.dueInDays));
     message.desc !== undefined && (obj.desc = message.desc);
+    message.installmentNumber !== undefined && (obj.installmentNumber = Math.round(message.installmentNumber));
     return obj;
   },
 
@@ -596,6 +622,7 @@ export const ChallengePayment = {
       : undefined;
     message.dueInDays = object.dueInDays ?? undefined;
     message.desc = object.desc ?? "";
+    message.installmentNumber = object.installmentNumber ?? 0;
     return message;
   },
 };
@@ -683,13 +710,13 @@ export const CreatePaymentInput = {
 };
 
 function createBaseUpdatePaymentInput(): UpdatePaymentInput {
-  return { lookupCriteria: [], updateInput: undefined };
+  return { lookupCriteria: undefined, updateInput: undefined };
 }
 
 export const UpdatePaymentInput = {
   encode(message: UpdatePaymentInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.lookupCriteria) {
-      LookupCriteria.encode(v!, writer.uint32(10).fork()).ldelim();
+    if (message.lookupCriteria !== undefined) {
+      LookupCriteria.encode(message.lookupCriteria, writer.uint32(10).fork()).ldelim();
     }
     if (message.updateInput !== undefined) {
       UpdatePaymentInput_UpdateInput.encode(message.updateInput, writer.uint32(18).fork()).ldelim();
@@ -705,7 +732,7 @@ export const UpdatePaymentInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.lookupCriteria.push(LookupCriteria.decode(reader, reader.uint32()));
+          message.lookupCriteria = LookupCriteria.decode(reader, reader.uint32());
           break;
         case 2:
           message.updateInput = UpdatePaymentInput_UpdateInput.decode(reader, reader.uint32());
@@ -720,20 +747,15 @@ export const UpdatePaymentInput = {
 
   fromJSON(object: any): UpdatePaymentInput {
     return {
-      lookupCriteria: Array.isArray(object?.lookupCriteria)
-        ? object.lookupCriteria.map((e: any) => LookupCriteria.fromJSON(e))
-        : [],
+      lookupCriteria: isSet(object.lookupCriteria) ? LookupCriteria.fromJSON(object.lookupCriteria) : undefined,
       updateInput: isSet(object.updateInput) ? UpdatePaymentInput_UpdateInput.fromJSON(object.updateInput) : undefined,
     };
   },
 
   toJSON(message: UpdatePaymentInput): unknown {
     const obj: any = {};
-    if (message.lookupCriteria) {
-      obj.lookupCriteria = message.lookupCriteria.map((e) => e ? LookupCriteria.toJSON(e) : undefined);
-    } else {
-      obj.lookupCriteria = [];
-    }
+    message.lookupCriteria !== undefined &&
+      (obj.lookupCriteria = message.lookupCriteria ? LookupCriteria.toJSON(message.lookupCriteria) : undefined);
     message.updateInput !== undefined &&
       (obj.updateInput = message.updateInput ? UpdatePaymentInput_UpdateInput.toJSON(message.updateInput) : undefined);
     return obj;
@@ -741,7 +763,9 @@ export const UpdatePaymentInput = {
 
   fromPartial<I extends Exact<DeepPartial<UpdatePaymentInput>, I>>(object: I): UpdatePaymentInput {
     const message = createBaseUpdatePaymentInput();
-    message.lookupCriteria = object.lookupCriteria?.map((e) => LookupCriteria.fromPartial(e)) || [];
+    message.lookupCriteria = (object.lookupCriteria !== undefined && object.lookupCriteria !== null)
+      ? LookupCriteria.fromPartial(object.lookupCriteria)
+      : undefined;
     message.updateInput = (object.updateInput !== undefined && object.updateInput !== null)
       ? UpdatePaymentInput_UpdateInput.fromPartial(object.updateInput)
       : undefined;

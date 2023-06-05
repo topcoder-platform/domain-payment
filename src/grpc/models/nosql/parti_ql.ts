@@ -12,7 +12,7 @@ import {
   UntypedServiceImplementation,
 } from "@grpc/grpc-js";
 import _m0 from "protobufjs/minimal";
-import { ListValue, NullValue, nullValueFromJSON, nullValueToJSON, Struct } from "./google/protobuf/struct";
+import { NullValue, nullValueFromJSON, nullValueToJSON, Struct } from "./google/protobuf/struct";
 
 export enum DataType {
   DATA_TYPE_UNSPECIFIED = 0,
@@ -412,12 +412,25 @@ export interface NumberSet {
   values: number[];
 }
 
+export interface MapValue {
+  values: { [key: string]: Value };
+}
+
+export interface MapValue_ValuesEntry {
+  key: string;
+  value?: Value;
+}
+
+export interface ListValue {
+  values: Value[];
+}
+
 export interface Value {
   kind?:
     | { $case: "boolean"; boolean: boolean }
     | { $case: "binary"; binary: Buffer }
-    | { $case: "listValue"; listValue: Array<any> }
-    | { $case: "mapValue"; mapValue: { [key: string]: any } }
+    | { $case: "listValue"; listValue: ListValue }
+    | { $case: "mapValue"; mapValue: MapValue }
     | { $case: "nullValue"; nullValue: NullValue }
     | { $case: "numberValue"; numberValue: number }
     | { $case: "numberSetValue"; numberSetValue: NumberSet }
@@ -436,22 +449,32 @@ export interface Filter {
   value?: Value;
 }
 
+export interface ValueWithDataType {
+  type: DataType;
+  value?: Value;
+}
+
 export interface SelectQuery {
   table: string;
   index?: string | undefined;
-  attributes: Attribute[];
+  attributes: string[];
   filters: Filter[];
   nextToken?: string | undefined;
 }
 
+export interface AttributeAndValue {
+  attribute?: Attribute;
+  value?: Value;
+}
+
 export interface InsertQuery {
   table: string;
-  attributes?: { [key: string]: any };
+  attributes: AttributeAndValue[];
 }
 
 export interface UpdateOperation {
   action: UpdateAction;
-  attribute: string;
+  attribute?: Attribute;
   type: UpdateType;
   value?: Value;
 }
@@ -465,6 +488,7 @@ export interface UpdateQuery {
 
 export interface DeleteQuery {
   table: string;
+  index?: string | undefined;
   filters: Filter[];
   returnValues?: ReturnValue | undefined;
 }
@@ -623,6 +647,182 @@ export const NumberSet = {
   },
 };
 
+function createBaseMapValue(): MapValue {
+  return { values: {} };
+}
+
+export const MapValue = {
+  encode(message: MapValue, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    Object.entries(message.values).forEach(([key, value]) => {
+      MapValue_ValuesEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MapValue {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMapValue();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          const entry1 = MapValue_ValuesEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.values[entry1.key] = entry1.value;
+          }
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MapValue {
+    return {
+      values: isObject(object.values)
+        ? Object.entries(object.values).reduce<{ [key: string]: Value }>((acc, [key, value]) => {
+          acc[key] = Value.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: MapValue): unknown {
+    const obj: any = {};
+    obj.values = {};
+    if (message.values) {
+      Object.entries(message.values).forEach(([k, v]) => {
+        obj.values[k] = Value.toJSON(v);
+      });
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MapValue>, I>>(object: I): MapValue {
+    const message = createBaseMapValue();
+    message.values = Object.entries(object.values ?? {}).reduce<{ [key: string]: Value }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = Value.fromPartial(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseMapValue_ValuesEntry(): MapValue_ValuesEntry {
+  return { key: "", value: undefined };
+}
+
+export const MapValue_ValuesEntry = {
+  encode(message: MapValue_ValuesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      Value.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MapValue_ValuesEntry {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMapValue_ValuesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.key = reader.string();
+          break;
+        case 2:
+          message.value = Value.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MapValue_ValuesEntry {
+    return {
+      key: isSet(object.key) ? String(object.key) : "",
+      value: isSet(object.value) ? Value.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: MapValue_ValuesEntry): unknown {
+    const obj: any = {};
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined && (obj.value = message.value ? Value.toJSON(message.value) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MapValue_ValuesEntry>, I>>(object: I): MapValue_ValuesEntry {
+    const message = createBaseMapValue_ValuesEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null) ? Value.fromPartial(object.value) : undefined;
+    return message;
+  },
+};
+
+function createBaseListValue(): ListValue {
+  return { values: [] };
+}
+
+export const ListValue = {
+  encode(message: ListValue, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.values) {
+      Value.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ListValue {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListValue();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.values.push(Value.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListValue {
+    return { values: Array.isArray(object?.values) ? object.values.map((e: any) => Value.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: ListValue): unknown {
+    const obj: any = {};
+    if (message.values) {
+      obj.values = message.values.map((e) => e ? Value.toJSON(e) : undefined);
+    } else {
+      obj.values = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ListValue>, I>>(object: I): ListValue {
+    const message = createBaseListValue();
+    message.values = object.values?.map((e) => Value.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 function createBaseValue(): Value {
   return { kind: undefined };
 }
@@ -636,10 +836,10 @@ export const Value = {
       writer.uint32(18).bytes(message.kind.binary);
     }
     if (message.kind?.$case === "listValue") {
-      ListValue.encode(ListValue.wrap(message.kind.listValue), writer.uint32(26).fork()).ldelim();
+      ListValue.encode(message.kind.listValue, writer.uint32(26).fork()).ldelim();
     }
     if (message.kind?.$case === "mapValue") {
-      Struct.encode(Struct.wrap(message.kind.mapValue), writer.uint32(34).fork()).ldelim();
+      MapValue.encode(message.kind.mapValue, writer.uint32(34).fork()).ldelim();
     }
     if (message.kind?.$case === "nullValue") {
       writer.uint32(40).int32(message.kind.nullValue);
@@ -673,10 +873,10 @@ export const Value = {
           message.kind = { $case: "binary", binary: reader.bytes() as Buffer };
           break;
         case 3:
-          message.kind = { $case: "listValue", listValue: ListValue.unwrap(ListValue.decode(reader, reader.uint32())) };
+          message.kind = { $case: "listValue", listValue: ListValue.decode(reader, reader.uint32()) };
           break;
         case 4:
-          message.kind = { $case: "mapValue", mapValue: Struct.unwrap(Struct.decode(reader, reader.uint32())) };
+          message.kind = { $case: "mapValue", mapValue: MapValue.decode(reader, reader.uint32()) };
           break;
         case 5:
           message.kind = { $case: "nullValue", nullValue: reader.int32() as any };
@@ -708,9 +908,9 @@ export const Value = {
         : isSet(object.binary)
         ? { $case: "binary", binary: Buffer.from(bytesFromBase64(object.binary)) }
         : isSet(object.listValue)
-        ? { $case: "listValue", listValue: [...object.listValue] }
+        ? { $case: "listValue", listValue: ListValue.fromJSON(object.listValue) }
         : isSet(object.mapValue)
-        ? { $case: "mapValue", mapValue: object.mapValue }
+        ? { $case: "mapValue", mapValue: MapValue.fromJSON(object.mapValue) }
         : isSet(object.nullValue)
         ? { $case: "nullValue", nullValue: nullValueFromJSON(object.nullValue) }
         : isSet(object.numberValue)
@@ -730,8 +930,10 @@ export const Value = {
     message.kind?.$case === "boolean" && (obj.boolean = message.kind?.boolean);
     message.kind?.$case === "binary" &&
       (obj.binary = message.kind?.binary !== undefined ? base64FromBytes(message.kind?.binary) : undefined);
-    message.kind?.$case === "listValue" && (obj.listValue = message.kind?.listValue);
-    message.kind?.$case === "mapValue" && (obj.mapValue = message.kind?.mapValue);
+    message.kind?.$case === "listValue" &&
+      (obj.listValue = message.kind?.listValue ? ListValue.toJSON(message.kind?.listValue) : undefined);
+    message.kind?.$case === "mapValue" &&
+      (obj.mapValue = message.kind?.mapValue ? MapValue.toJSON(message.kind?.mapValue) : undefined);
     message.kind?.$case === "nullValue" &&
       (obj.nullValue = message.kind?.nullValue !== undefined ? nullValueToJSON(message.kind?.nullValue) : undefined);
     message.kind?.$case === "numberValue" && (obj.numberValue = message.kind?.numberValue);
@@ -752,10 +954,10 @@ export const Value = {
       message.kind = { $case: "binary", binary: object.kind.binary };
     }
     if (object.kind?.$case === "listValue" && object.kind?.listValue !== undefined && object.kind?.listValue !== null) {
-      message.kind = { $case: "listValue", listValue: object.kind.listValue };
+      message.kind = { $case: "listValue", listValue: ListValue.fromPartial(object.kind.listValue) };
     }
     if (object.kind?.$case === "mapValue" && object.kind?.mapValue !== undefined && object.kind?.mapValue !== null) {
-      message.kind = { $case: "mapValue", mapValue: object.kind.mapValue };
+      message.kind = { $case: "mapValue", mapValue: MapValue.fromPartial(object.kind.mapValue) };
     }
     if (object.kind?.$case === "nullValue" && object.kind?.nullValue !== undefined && object.kind?.nullValue !== null) {
       message.kind = { $case: "nullValue", nullValue: object.kind.nullValue };
@@ -917,6 +1119,64 @@ export const Filter = {
   },
 };
 
+function createBaseValueWithDataType(): ValueWithDataType {
+  return { type: 0, value: undefined };
+}
+
+export const ValueWithDataType = {
+  encode(message: ValueWithDataType, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.type !== 0) {
+      writer.uint32(8).int32(message.type);
+    }
+    if (message.value !== undefined) {
+      Value.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ValueWithDataType {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseValueWithDataType();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.type = reader.int32() as any;
+          break;
+        case 2:
+          message.value = Value.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ValueWithDataType {
+    return {
+      type: isSet(object.type) ? dataTypeFromJSON(object.type) : 0,
+      value: isSet(object.value) ? Value.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: ValueWithDataType): unknown {
+    const obj: any = {};
+    message.type !== undefined && (obj.type = dataTypeToJSON(message.type));
+    message.value !== undefined && (obj.value = message.value ? Value.toJSON(message.value) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ValueWithDataType>, I>>(object: I): ValueWithDataType {
+    const message = createBaseValueWithDataType();
+    message.type = object.type ?? 0;
+    message.value = (object.value !== undefined && object.value !== null) ? Value.fromPartial(object.value) : undefined;
+    return message;
+  },
+};
+
 function createBaseSelectQuery(): SelectQuery {
   return { table: "", index: undefined, attributes: [], filters: [], nextToken: undefined };
 }
@@ -930,7 +1190,7 @@ export const SelectQuery = {
       writer.uint32(18).string(message.index);
     }
     for (const v of message.attributes) {
-      Attribute.encode(v!, writer.uint32(26).fork()).ldelim();
+      writer.uint32(26).string(v!);
     }
     for (const v of message.filters) {
       Filter.encode(v!, writer.uint32(34).fork()).ldelim();
@@ -955,7 +1215,7 @@ export const SelectQuery = {
           message.index = reader.string();
           break;
         case 3:
-          message.attributes.push(Attribute.decode(reader, reader.uint32()));
+          message.attributes.push(reader.string());
           break;
         case 4:
           message.filters.push(Filter.decode(reader, reader.uint32()));
@@ -975,7 +1235,7 @@ export const SelectQuery = {
     return {
       table: isSet(object.table) ? String(object.table) : "",
       index: isSet(object.index) ? String(object.index) : undefined,
-      attributes: Array.isArray(object?.attributes) ? object.attributes.map((e: any) => Attribute.fromJSON(e)) : [],
+      attributes: Array.isArray(object?.attributes) ? object.attributes.map((e: any) => String(e)) : [],
       filters: Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
       nextToken: isSet(object.nextToken) ? String(object.nextToken) : undefined,
     };
@@ -986,7 +1246,7 @@ export const SelectQuery = {
     message.table !== undefined && (obj.table = message.table);
     message.index !== undefined && (obj.index = message.index);
     if (message.attributes) {
-      obj.attributes = message.attributes.map((e) => e ? Attribute.toJSON(e) : undefined);
+      obj.attributes = message.attributes.map((e) => e);
     } else {
       obj.attributes = [];
     }
@@ -1003,15 +1263,76 @@ export const SelectQuery = {
     const message = createBaseSelectQuery();
     message.table = object.table ?? "";
     message.index = object.index ?? undefined;
-    message.attributes = object.attributes?.map((e) => Attribute.fromPartial(e)) || [];
+    message.attributes = object.attributes?.map((e) => e) || [];
     message.filters = object.filters?.map((e) => Filter.fromPartial(e)) || [];
     message.nextToken = object.nextToken ?? undefined;
     return message;
   },
 };
 
+function createBaseAttributeAndValue(): AttributeAndValue {
+  return { attribute: undefined, value: undefined };
+}
+
+export const AttributeAndValue = {
+  encode(message: AttributeAndValue, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.attribute !== undefined) {
+      Attribute.encode(message.attribute, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.value !== undefined) {
+      Value.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AttributeAndValue {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAttributeAndValue();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.attribute = Attribute.decode(reader, reader.uint32());
+          break;
+        case 2:
+          message.value = Value.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AttributeAndValue {
+    return {
+      attribute: isSet(object.attribute) ? Attribute.fromJSON(object.attribute) : undefined,
+      value: isSet(object.value) ? Value.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: AttributeAndValue): unknown {
+    const obj: any = {};
+    message.attribute !== undefined &&
+      (obj.attribute = message.attribute ? Attribute.toJSON(message.attribute) : undefined);
+    message.value !== undefined && (obj.value = message.value ? Value.toJSON(message.value) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<AttributeAndValue>, I>>(object: I): AttributeAndValue {
+    const message = createBaseAttributeAndValue();
+    message.attribute = (object.attribute !== undefined && object.attribute !== null)
+      ? Attribute.fromPartial(object.attribute)
+      : undefined;
+    message.value = (object.value !== undefined && object.value !== null) ? Value.fromPartial(object.value) : undefined;
+    return message;
+  },
+};
+
 function createBaseInsertQuery(): InsertQuery {
-  return { table: "", attributes: undefined };
+  return { table: "", attributes: [] };
 }
 
 export const InsertQuery = {
@@ -1019,8 +1340,8 @@ export const InsertQuery = {
     if (message.table !== "") {
       writer.uint32(10).string(message.table);
     }
-    if (message.attributes !== undefined) {
-      Struct.encode(Struct.wrap(message.attributes), writer.uint32(18).fork()).ldelim();
+    for (const v of message.attributes) {
+      AttributeAndValue.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1036,7 +1357,7 @@ export const InsertQuery = {
           message.table = reader.string();
           break;
         case 2:
-          message.attributes = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          message.attributes.push(AttributeAndValue.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -1049,27 +1370,33 @@ export const InsertQuery = {
   fromJSON(object: any): InsertQuery {
     return {
       table: isSet(object.table) ? String(object.table) : "",
-      attributes: isObject(object.attributes) ? object.attributes : undefined,
+      attributes: Array.isArray(object?.attributes)
+        ? object.attributes.map((e: any) => AttributeAndValue.fromJSON(e))
+        : [],
     };
   },
 
   toJSON(message: InsertQuery): unknown {
     const obj: any = {};
     message.table !== undefined && (obj.table = message.table);
-    message.attributes !== undefined && (obj.attributes = message.attributes);
+    if (message.attributes) {
+      obj.attributes = message.attributes.map((e) => e ? AttributeAndValue.toJSON(e) : undefined);
+    } else {
+      obj.attributes = [];
+    }
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<InsertQuery>, I>>(object: I): InsertQuery {
     const message = createBaseInsertQuery();
     message.table = object.table ?? "";
-    message.attributes = object.attributes ?? undefined;
+    message.attributes = object.attributes?.map((e) => AttributeAndValue.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseUpdateOperation(): UpdateOperation {
-  return { action: 0, attribute: "", type: 0, value: undefined };
+  return { action: 0, attribute: undefined, type: 0, value: undefined };
 }
 
 export const UpdateOperation = {
@@ -1077,8 +1404,8 @@ export const UpdateOperation = {
     if (message.action !== 0) {
       writer.uint32(8).int32(message.action);
     }
-    if (message.attribute !== "") {
-      writer.uint32(18).string(message.attribute);
+    if (message.attribute !== undefined) {
+      Attribute.encode(message.attribute, writer.uint32(18).fork()).ldelim();
     }
     if (message.type !== 0) {
       writer.uint32(24).int32(message.type);
@@ -1100,7 +1427,7 @@ export const UpdateOperation = {
           message.action = reader.int32() as any;
           break;
         case 2:
-          message.attribute = reader.string();
+          message.attribute = Attribute.decode(reader, reader.uint32());
           break;
         case 3:
           message.type = reader.int32() as any;
@@ -1119,7 +1446,7 @@ export const UpdateOperation = {
   fromJSON(object: any): UpdateOperation {
     return {
       action: isSet(object.action) ? updateActionFromJSON(object.action) : 0,
-      attribute: isSet(object.attribute) ? String(object.attribute) : "",
+      attribute: isSet(object.attribute) ? Attribute.fromJSON(object.attribute) : undefined,
       type: isSet(object.type) ? updateTypeFromJSON(object.type) : 0,
       value: isSet(object.value) ? Value.fromJSON(object.value) : undefined,
     };
@@ -1128,7 +1455,8 @@ export const UpdateOperation = {
   toJSON(message: UpdateOperation): unknown {
     const obj: any = {};
     message.action !== undefined && (obj.action = updateActionToJSON(message.action));
-    message.attribute !== undefined && (obj.attribute = message.attribute);
+    message.attribute !== undefined &&
+      (obj.attribute = message.attribute ? Attribute.toJSON(message.attribute) : undefined);
     message.type !== undefined && (obj.type = updateTypeToJSON(message.type));
     message.value !== undefined && (obj.value = message.value ? Value.toJSON(message.value) : undefined);
     return obj;
@@ -1137,7 +1465,9 @@ export const UpdateOperation = {
   fromPartial<I extends Exact<DeepPartial<UpdateOperation>, I>>(object: I): UpdateOperation {
     const message = createBaseUpdateOperation();
     message.action = object.action ?? 0;
-    message.attribute = object.attribute ?? "";
+    message.attribute = (object.attribute !== undefined && object.attribute !== null)
+      ? Attribute.fromPartial(object.attribute)
+      : undefined;
     message.type = object.type ?? 0;
     message.value = (object.value !== undefined && object.value !== null) ? Value.fromPartial(object.value) : undefined;
     return message;
@@ -1230,7 +1560,7 @@ export const UpdateQuery = {
 };
 
 function createBaseDeleteQuery(): DeleteQuery {
-  return { table: "", filters: [], returnValues: undefined };
+  return { table: "", index: undefined, filters: [], returnValues: undefined };
 }
 
 export const DeleteQuery = {
@@ -1238,11 +1568,14 @@ export const DeleteQuery = {
     if (message.table !== "") {
       writer.uint32(10).string(message.table);
     }
+    if (message.index !== undefined) {
+      writer.uint32(18).string(message.index);
+    }
     for (const v of message.filters) {
-      Filter.encode(v!, writer.uint32(18).fork()).ldelim();
+      Filter.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     if (message.returnValues !== undefined) {
-      writer.uint32(24).int32(message.returnValues);
+      writer.uint32(32).int32(message.returnValues);
     }
     return writer;
   },
@@ -1258,9 +1591,12 @@ export const DeleteQuery = {
           message.table = reader.string();
           break;
         case 2:
-          message.filters.push(Filter.decode(reader, reader.uint32()));
+          message.index = reader.string();
           break;
         case 3:
+          message.filters.push(Filter.decode(reader, reader.uint32()));
+          break;
+        case 4:
           message.returnValues = reader.int32() as any;
           break;
         default:
@@ -1274,6 +1610,7 @@ export const DeleteQuery = {
   fromJSON(object: any): DeleteQuery {
     return {
       table: isSet(object.table) ? String(object.table) : "",
+      index: isSet(object.index) ? String(object.index) : undefined,
       filters: Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
       returnValues: isSet(object.returnValues) ? returnValueFromJSON(object.returnValues) : undefined,
     };
@@ -1282,6 +1619,7 @@ export const DeleteQuery = {
   toJSON(message: DeleteQuery): unknown {
     const obj: any = {};
     message.table !== undefined && (obj.table = message.table);
+    message.index !== undefined && (obj.index = message.index);
     if (message.filters) {
       obj.filters = message.filters.map((e) => e ? Filter.toJSON(e) : undefined);
     } else {
@@ -1295,6 +1633,7 @@ export const DeleteQuery = {
   fromPartial<I extends Exact<DeepPartial<DeleteQuery>, I>>(object: I): DeleteQuery {
     const message = createBaseDeleteQuery();
     message.table = object.table ?? "";
+    message.index = object.index ?? undefined;
     message.filters = object.filters?.map((e) => Filter.fromPartial(e)) || [];
     message.returnValues = object.returnValues ?? undefined;
     return message;

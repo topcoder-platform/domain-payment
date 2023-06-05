@@ -1,22 +1,10 @@
 import { handleUnaryCall, sendUnaryData, ServerUnaryCall } from "@grpc/grpc-js";
 
-import {
-  ScanRequest,
-  ScanResult,
-  LookupCriteria,
-} from "../models/common/common";
-
-import {
-  CreatePaymentInput,
-  Payment,
-  UpdatePaymentInput,
-} from "../models/domain-layer/payment/payment";
+import { CreatePaymentInput, Payment, UpdatePaymentInput } from "../models/domain-layer/payment/payment";
 
 import PaymentDomain from "../domain/PaymentDomain";
-import {
-  PaymentServer,
-  PaymentService,
-} from "../models/domain-layer/payment/services/payment";
+import { PaymentServer, PaymentService } from "../models/domain-layer/payment/services/payment";
+import { LookupCriteria, ScanRequest, ScanResult } from "@topcoder-framework/lib-common";
 
 class PaymentServerImpl implements PaymentServer {
   [name: string]: import("@grpc/grpc-js").UntypedHandleCall;
@@ -26,7 +14,7 @@ class PaymentServerImpl implements PaymentServer {
     callback: sendUnaryData<ScanResult>
   ): Promise<void> => {
     const {
-      request: { scanCriteria, nextToken: inputNextToken },
+      request: { criteria, nextToken: inputNextToken },
     } = call;
     // TODO
   };
