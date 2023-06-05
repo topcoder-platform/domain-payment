@@ -22,15 +22,15 @@
   "license": "ISC",
   "dependencies": {
     "@grpc/grpc-js": "^1.7.1",
-    "@topcoder-framework/client-relational": "^0.13.0",
-    "@topcoder-framework/lib-common": "^0.13.0",
+    "@topcoder-framework/client-relational": "^0.13.1",
+    "@topcoder-framework/lib-common": "^0.13.1",
     "dayjs": "^1.11.5",
     "decimal.js": "^10.4.3",
     "dotenv": "^16.0.3",
     "grpc-server-reflection": "^0.1.5",
     "lodash": "^4.17.21",
     "source-map-support": "^0.5.21",
-    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.50-beta-2",
+    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.50-beta-3",
     "utility-types": "^3.10.0",
     "uuidv4": "^6.2.13"
   },

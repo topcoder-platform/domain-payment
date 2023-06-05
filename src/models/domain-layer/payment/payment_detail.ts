@@ -7,13 +7,16 @@ export interface PaymentDetail {
   netAmount: number;
   grossAmount: number;
   totalAmount: number;
+  /** DATETIME YEAR TO FRACTION (3) */
   datePaid?: string | undefined;
   paymentStatusId: number;
   paymentAddressId?: number | undefined;
   modificationRationaleId: number;
   paymentDesc: string;
   paymentTypeId: number;
+  /** DATETIME YEAR TO FRACTION (3) */
   dateModified: string;
+  /** DATETIME YEAR TO FRACTION (3) */
   dateDue: string;
   paymentMethodId: number;
   client?: string | undefined;
@@ -25,13 +28,26 @@ export interface PaymentDetail {
   studioContestId?: number | undefined;
   digitalRunStageId?: number | undefined;
   digitalRunSeasonId?: number | undefined;
-  parentPaymentId?: number | undefined;
+  parentPaymentId?:
+    | number
+    | undefined;
+  /** DATETIME YEAR TO FRACTION (3) */
   createDate: string;
   charityInd: number;
   installmentNumber: number;
   digitalRunTrackId: number;
   jiraIssueId?: string | undefined;
-  userId: number;
+  createUser: number;
+}
+
+export interface PaymentDetailXref {
+  paymentId: number;
+  paymentDetailId: number;
+}
+
+export interface PaymentDetailStatusReasonXref {
+  paymentDetailId: number;
+  paymentStatusReasonId: number;
 }
 
 export interface PaymentDetailList {
@@ -68,7 +84,7 @@ function createBasePaymentDetail(): PaymentDetail {
     installmentNumber: 0,
     digitalRunTrackId: 0,
     jiraIssueId: undefined,
-    userId: 0,
+    createUser: 0,
   };
 }
 
@@ -158,8 +174,8 @@ export const PaymentDetail = {
     if (message.jiraIssueId !== undefined) {
       writer.uint32(226).string(message.jiraIssueId);
     }
-    if (message.userId !== 0) {
-      writer.uint32(232).int32(message.userId);
+    if (message.createUser !== 0) {
+      writer.uint32(232).int32(message.createUser);
     }
     return writer;
   },
@@ -256,7 +272,7 @@ export const PaymentDetail = {
           message.jiraIssueId = reader.string();
           break;
         case 29:
-          message.userId = reader.int32();
+          message.createUser = reader.int32();
           break;
         default:
           reader.skipType(tag & 7);
@@ -296,7 +312,7 @@ export const PaymentDetail = {
       installmentNumber: isSet(object.installmentNumber) ? Number(object.installmentNumber) : 0,
       digitalRunTrackId: isSet(object.digitalRunTrackId) ? Number(object.digitalRunTrackId) : 0,
       jiraIssueId: isSet(object.jiraIssueId) ? String(object.jiraIssueId) : undefined,
-      userId: isSet(object.userId) ? Number(object.userId) : 0,
+      createUser: isSet(object.createUser) ? Number(object.createUser) : 0,
     };
   },
 
@@ -331,7 +347,7 @@ export const PaymentDetail = {
     message.installmentNumber !== undefined && (obj.installmentNumber = Math.round(message.installmentNumber));
     message.digitalRunTrackId !== undefined && (obj.digitalRunTrackId = Math.round(message.digitalRunTrackId));
     message.jiraIssueId !== undefined && (obj.jiraIssueId = message.jiraIssueId);
-    message.userId !== undefined && (obj.userId = Math.round(message.userId));
+    message.createUser !== undefined && (obj.createUser = Math.round(message.createUser));
     return obj;
   },
 
@@ -365,7 +381,126 @@ export const PaymentDetail = {
     message.installmentNumber = object.installmentNumber ?? 0;
     message.digitalRunTrackId = object.digitalRunTrackId ?? 0;
     message.jiraIssueId = object.jiraIssueId ?? undefined;
-    message.userId = object.userId ?? 0;
+    message.createUser = object.createUser ?? 0;
+    return message;
+  },
+};
+
+function createBasePaymentDetailXref(): PaymentDetailXref {
+  return { paymentId: 0, paymentDetailId: 0 };
+}
+
+export const PaymentDetailXref = {
+  encode(message: PaymentDetailXref, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.paymentId !== 0) {
+      writer.uint32(8).int32(message.paymentId);
+    }
+    if (message.paymentDetailId !== 0) {
+      writer.uint32(16).int32(message.paymentDetailId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PaymentDetailXref {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePaymentDetailXref();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.paymentId = reader.int32();
+          break;
+        case 2:
+          message.paymentDetailId = reader.int32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PaymentDetailXref {
+    return {
+      paymentId: isSet(object.paymentId) ? Number(object.paymentId) : 0,
+      paymentDetailId: isSet(object.paymentDetailId) ? Number(object.paymentDetailId) : 0,
+    };
+  },
+
+  toJSON(message: PaymentDetailXref): unknown {
+    const obj: any = {};
+    message.paymentId !== undefined && (obj.paymentId = Math.round(message.paymentId));
+    message.paymentDetailId !== undefined && (obj.paymentDetailId = Math.round(message.paymentDetailId));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PaymentDetailXref>, I>>(object: I): PaymentDetailXref {
+    const message = createBasePaymentDetailXref();
+    message.paymentId = object.paymentId ?? 0;
+    message.paymentDetailId = object.paymentDetailId ?? 0;
+    return message;
+  },
+};
+
+function createBasePaymentDetailStatusReasonXref(): PaymentDetailStatusReasonXref {
+  return { paymentDetailId: 0, paymentStatusReasonId: 0 };
+}
+
+export const PaymentDetailStatusReasonXref = {
+  encode(message: PaymentDetailStatusReasonXref, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.paymentDetailId !== 0) {
+      writer.uint32(8).int32(message.paymentDetailId);
+    }
+    if (message.paymentStatusReasonId !== 0) {
+      writer.uint32(16).int32(message.paymentStatusReasonId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PaymentDetailStatusReasonXref {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePaymentDetailStatusReasonXref();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.paymentDetailId = reader.int32();
+          break;
+        case 2:
+          message.paymentStatusReasonId = reader.int32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PaymentDetailStatusReasonXref {
+    return {
+      paymentDetailId: isSet(object.paymentDetailId) ? Number(object.paymentDetailId) : 0,
+      paymentStatusReasonId: isSet(object.paymentStatusReasonId) ? Number(object.paymentStatusReasonId) : 0,
+    };
+  },
+
+  toJSON(message: PaymentDetailStatusReasonXref): unknown {
+    const obj: any = {};
+    message.paymentDetailId !== undefined && (obj.paymentDetailId = Math.round(message.paymentDetailId));
+    message.paymentStatusReasonId !== undefined &&
+      (obj.paymentStatusReasonId = Math.round(message.paymentStatusReasonId));
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PaymentDetailStatusReasonXref>, I>>(
+    object: I,
+  ): PaymentDetailStatusReasonXref {
+    const message = createBasePaymentDetailStatusReasonXref();
+    message.paymentDetailId = object.paymentDetailId ?? 0;
+    message.paymentStatusReasonId = object.paymentStatusReasonId ?? 0;
     return message;
   },
 };

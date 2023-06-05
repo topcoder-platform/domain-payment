@@ -1,4 +1,4 @@
-import { PaymentDetailXref } from "@Model/domain-layer/payment/payment_detail";
+import { PaymentDetailXref } from "../models/domain-layer/payment/payment_detail";
 import { ColumnType, Schema } from "@topcoder-framework/client-relational";
 
 export const PaymentDetailXrefSchema: Schema<PaymentDetailXref> = {

@@ -1,4 +1,4 @@
-import { Payment } from "@Model/domain-layer/payment/payment";
+import { Payment } from "../models/domain-layer/payment/payment";
 import { ColumnType, Schema } from "@topcoder-framework/client-relational";
 
 export const PaymentSchema: Schema<Payment> = {

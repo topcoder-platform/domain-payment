@@ -1,5 +1,5 @@
 Arguments: 
-  /Users/rakibansary/.volta/tools/image/node/18.13.0/bin/node /Users/rakibansary/.volta/tools/image/yarn/1.22.19/bin/yarn.js add @topcoder-framework/lib-common@latest
+  /Users/rakibansary/.volta/tools/image/node/18.13.0/bin/node /Users/rakibansary/.volta/tools/image/yarn/1.22.19/bin/yarn.js
 
 PATH: 
   /Users/rakibansary/.volta/tools/image/yarn/1.22.19/bin:/Users/rakibansary/.volta/tools/image/node/18.13.0/bin:/Users/rakibansary/.pyenv/shims:/Users/rakibansary/.meteor:/Users/rakibansary/.cargo/bin:/Users/rakibansary/.volta/bin:/Users/rakibansary/go/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Users/rakibansary/.meteor:/Users/rakibansary/.cargo/bin:/Users/rakibansary/.volta/bin:/Users/rakibansary/go/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/rakibansary/Library/Application Support/JetBrains/Toolbox/scripts:/Users/rakibansary/Library/Application Support/JetBrains/Toolbox/scripts
@@ -14,7 +14,7 @@ Platform:
   darwin arm64
 
 Trace: 
-  Error: https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework%2flib-common: Unauthenticated: request used expired credentials. Please renew your credentials.
+  Error: https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework%2fclient-relational: Unauthenticated: request used expired credentials. Please renew your credentials.
       at params.callback [as _callback] (/Users/rakibansary/.volta/tools/image/yarn/1.22.19/lib/cli.js:66145:18)
       at self.callback (/Users/rakibansary/.volta/tools/image/yarn/1.22.19/lib/cli.js:140890:22)
       at Request.emit (node:events:513:28)
@@ -51,15 +51,15 @@ npm manifest:
     "license": "ISC",
     "dependencies": {
       "@grpc/grpc-js": "^1.7.1",
-      "@topcoder-framework/client-relational": "^0.11.1",
-      "@topcoder-framework/lib-common": "^0.11.0",
+      "@topcoder-framework/client-relational": "^0.13.1",
+      "@topcoder-framework/lib-common": "^0.13.1",
       "dayjs": "^1.11.5",
       "decimal.js": "^10.4.3",
       "dotenv": "^16.0.3",
       "grpc-server-reflection": "^0.1.5",
       "lodash": "^4.17.21",
       "source-map-support": "^0.5.21",
-      "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.50-beta-2",
+      "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.50-beta-3",
       "utility-types": "^3.10.0",
       "uuidv4": "^6.2.13"
     },
@@ -191,24 +191,24 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
     integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
   
-  "@topcoder-framework/client-relational@^0.11.1":
-    version "0.11.1"
-    resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/client-relational/-/client-relational-0.11.1.tgz#7dbecb49039211a5b031d40d18c541d7230018b6"
-    integrity sha512-v/7wYmhtWn65CBY9SAe8kcdY6ycQuj1lq45SfsbQGS2XEetC0+2M8Su1p3fvRLtt4w7pljWvC7Am643XkNSo3w==
+  "@topcoder-framework/client-relational@^0.13.0":
+    version "0.13.0"
+    resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/client-relational/-/client-relational-0.13.0.tgz#b27f6d6e100f3f51af0d5d8f7093e3d4f26a951c"
+    integrity sha512-F8nhq8oWev5MC3MZFXajhQPT/Kb4YBw+LSOKlAt7m9nD9OasKq9hvbRytd3EIstqvXcTzFK4Zw3Zso8fULvo+g==
     dependencies:
       "@grpc/grpc-js" "^1.8.0"
-      "@topcoder-framework/lib-common" "^0.11.0"
-      topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.49"
+      "@topcoder-framework/lib-common" "^0.13.0"
+      topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.50-beta-2"
       tslib "^2.4.1"
   
-  "@topcoder-framework/lib-common@^0.11.0":
-    version "0.11.0"
-    resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.11.0.tgz#fc5d10a52797555b1ef97969c66bd204f90b5111"
-    integrity sha512-nAkpQ+EAuVnoVlaU5YHOLqe9xn0tQwvmyD+EuGfd75tZ/KbzHrGzvliTEiJtDjcKExv8qCDmSVkzUDEEP47U0Q==
+  "@topcoder-framework/lib-common@^0.13.0":
+    version "0.13.0"
+    resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.13.0.tgz#9d43e8f717b0873e599e758866417c6a14bd1196"
+    integrity sha512-FCt4k4Fxj/9RsUCGEFBPPaVlz6FNloQkqFnnx+YKMb0Cos22wN5qVgOuRq1SNoEQP9R28vJBm5pxcB6hW9J2PA==
     dependencies:
       "@grpc/grpc-js" "^1.8.0"
       rimraf "^3.0.2"
-      topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.49"
+      topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.50-beta-2"
       tslib "^2.4.1"
   
   "@tsconfig/node10@^1.0.7":
@@ -1834,10 +1834,6 @@ Lockfile:
     integrity sha512-TZXgboKpD5Iu0Goi8hRXuJpE06Pbo+bies4I4jnTBhlRRgyen9c37nMylnquK/ZPKXXOeh1mJ14p9QdKp+9v7A==
     dependencies:
       isobject "^3.0.0"
-  
-  "topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.49":
-    version "1.0.0"
-    resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/2688ec4d265f32d9d980eff6120b0e4740f22c12"
   
   "topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.50-beta-2":
     version "1.0.0"

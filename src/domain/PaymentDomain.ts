@@ -1,4 +1,5 @@
-import { relationalClient } from "../grpc/client/relational";
+import { ColumnType, JoinType, Operator, Query, WhereCriteria } from "@topcoder-framework/client-relational";
+import { queryRunner } from "../helpers/QueryRunner";
 
 import {
   ChallengePayment,
@@ -7,17 +8,14 @@ import {
   PaymentType,
   TaskPayment,
   UpdatePaymentInput,
-} from "@Model/domain-layer/payment/payment";
+} from "../models/domain-layer/payment/payment";
 
-import { ColumnType, JoinType, Operator, Query, WhereCriteria } from "../grpc/models/rdb/relational";
-
-import { GrpcError } from "@Common/GrpcError";
+import { GrpcError } from "../common/GrpcError";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 
-import Util from "@Common/Util";
+import Util from "../common/Util";
 import { LookupCriteria } from "@topcoder-framework/lib-common";
-import { queryRunner } from "src/helpers/QueryRunner";
-import PaymentQueryHelper from "src/helpers/query-helper/PaymentQueryHelper";
+import PaymentQueryHelper from "../helpers/query-helper/PaymentQueryHelper";
 
 const TCWEBSERVICE = 22838965;
 
@@ -96,15 +94,15 @@ class PaymentDomain {
       },
     };
 
-    const queryResponse = await relationalClient.query({
-      query,
-    });
+    const transaction = queryRunner.beginTransaction();
 
-    if (queryResponse.result?.$case !== "selectResult") {
+    const queryResponse = await transaction.add(query);
+
+    if (queryResponse.rows?.length === 0) {
       throw new Error(`Invalid query response: ${JSON.stringify(queryResponse)}`);
     }
 
-    const result = queryResponse.result.selectResult;
+    const result = queryResponse.rows;
     console.log("result", JSON.stringify(result, null, 2));
     return Promise.resolve({} as Payment);
   }
@@ -118,8 +116,6 @@ class PaymentDomain {
     } else {
       payment = input.kind?.taskPayment!;
     }
-
-    const transaction = queryRunner.beginTransaction();
 
     const createPaymentDetailQuery = PaymentQueryHelper.getCreatePaymentDetailQuery(
       {
@@ -142,6 +138,7 @@ class PaymentDomain {
       TCWEBSERVICE
     );
 
+    const transaction = queryRunner.beginTransaction();
     const paymentDetailResponse = await transaction.add(createPaymentDetailQuery);
 
     if (paymentDetailResponse.lastInsertId === undefined) {
@@ -175,6 +172,8 @@ class PaymentDomain {
       await transaction.add(createPaymentDetailStatusReasonXrefQuery);
     }
 
+    transaction.commit();
+
     return {
       paymentId,
       userId: payment.payee?.userId!,
@@ -186,202 +185,202 @@ class PaymentDomain {
     return Promise.resolve({} as Payment);
   }
 
-  private async createTaskPayment({
-    challengeId,
-    desc,
-    paymentType,
-    dueInDays,
-    payable,
-    payee,
-  }: TaskPayment): Promise<Payment> {
-    const insertPaymentDetailQuery: Partial<Query> = {
-      query: {
-        $case: "insert",
-        insert: {
-          schema: this.schemaName,
-          table: this.detailTableName,
-          columnValue: [
-            {
-              column: "net_amount",
-              value: Util.toFloatValue(payable?.amount!),
-            },
-            {
-              column: "gross_amount",
-              value: Util.toFloatValue(payable?.amount!),
-            },
-            {
-              column: "total_amount",
-              value: Util.toFloatValue(payable?.amount!),
-            },
-            {
-              column: "payment_desc",
-              value: Util.toStringValue(desc),
-            },
-            {
-              column: "create_date",
-              value: Util.toDatetimeValue("CURRENT"),
-            },
-            {
-              column: "date_modified",
-              value: Util.toDatetimeValue("CURRENT"),
-            },
-            {
-              column: "date_due",
-              value: Util.toDatetimeValue(`EXTEND(CURRENT + INTERVAL (${dueInDays}) DAY(5) TO DAY, YEAR TO DAY)`),
-            },
-            {
-              column: "jira_issue_id",
-              value: Util.toStringValue(challengeId),
-            },
-            {
-              column: "create_user",
-              value: Util.toIntValue(22838965), // tcwebservice | TODO: Get from metadata JWT Token
-            },
-            {
-              column: "installment_number",
-              value: Util.toIntValue(1),
-            },
-            {
-              column: "charity_ind",
-              value: Util.toIntValue(0),
-            },
-            {
-              column: "payment_method_id",
-              value: Util.toIntValue(1), // Not Set
-            },
-            {
-              column: "payment_type_id",
-              value: Util.toIntValue(this.mapPaymentType(paymentType)),
-            },
-            {
-              column: "modification_rationale_id",
-              value: Util.toIntValue(1), // New
-            },
-            {
-              column: "payment_status_id",
-              value: Util.toIntValue(55), // Hold - Pending Approval - has user filled up tax forms for example?
-            },
-          ],
-          idSequence: "PAYMENT_DETAIL_SEQ",
-          idColumn: "payment_detail_id",
-        },
-      },
-    };
+  // private async createTaskPayment({
+  //   challengeId,
+  //   desc,
+  //   paymentType,
+  //   dueInDays,
+  //   payable,
+  //   payee,
+  // }: TaskPayment): Promise<Payment> {
+  //   const transaction = queryRunner.beginTransaction();
 
-    const createPaymentDetailResponse = await relationalClient.query({
-      query: insertPaymentDetailQuery,
-    });
+  //   const insertPaymentDetailQuery: Partial<Query> = {
+  //     query: {
+  //       $case: "insert",
+  //       insert: {
+  //         schema: this.schemaName,
+  //         table: this.detailTableName,
+  //         columnValue: [
+  //           {
+  //             column: "net_amount",
+  //             value: Util.toFloatValue(payable?.amount!),
+  //           },
+  //           {
+  //             column: "gross_amount",
+  //             value: Util.toFloatValue(payable?.amount!),
+  //           },
+  //           {
+  //             column: "total_amount",
+  //             value: Util.toFloatValue(payable?.amount!),
+  //           },
+  //           {
+  //             column: "payment_desc",
+  //             value: Util.toStringValue(desc),
+  //           },
+  //           {
+  //             column: "create_date",
+  //             value: Util.toDatetimeValue("CURRENT"),
+  //           },
+  //           {
+  //             column: "date_modified",
+  //             value: Util.toDatetimeValue("CURRENT"),
+  //           },
+  //           {
+  //             column: "date_due",
+  //             value: Util.toDatetimeValue(`EXTEND(CURRENT + INTERVAL (${dueInDays}) DAY(5) TO DAY, YEAR TO DAY)`),
+  //           },
+  //           {
+  //             column: "jira_issue_id",
+  //             value: Util.toStringValue(challengeId),
+  //           },
+  //           {
+  //             column: "create_user",
+  //             value: Util.toIntValue(22838965), // tcwebservice | TODO: Get from metadata JWT Token
+  //           },
+  //           {
+  //             column: "installment_number",
+  //             value: Util.toIntValue(1),
+  //           },
+  //           {
+  //             column: "charity_ind",
+  //             value: Util.toIntValue(0),
+  //           },
+  //           {
+  //             column: "payment_method_id",
+  //             value: Util.toIntValue(1), // Not Set
+  //           },
+  //           {
+  //             column: "payment_type_id",
+  //             value: Util.toIntValue(this.mapPaymentType(paymentType)),
+  //           },
+  //           {
+  //             column: "modification_rationale_id",
+  //             value: Util.toIntValue(1), // New
+  //           },
+  //           {
+  //             column: "payment_status_id",
+  //             value: Util.toIntValue(55), // Hold - Pending Approval - has user filled up tax forms for example?
+  //           },
+  //         ],
+  //         idSequence: "PAYMENT_DETAIL_SEQ",
+  //         idColumn: "payment_detail_id",
+  //       },
+  //     },
+  //   };
 
-    if (createPaymentDetailResponse.result?.$case !== "insertResult") {
-      throw new GrpcError({
-        code: Status.INTERNAL,
-        details: `Invalid query response`,
-      });
-    }
+  //   const createPaymentDetailResponse = await transaction.add(insertPaymentDetailQuery);
 
-    // prettier-ignore
-    const detailId: number = createPaymentDetailResponse.result.insertResult.lastInsertId;
+  //   if (createPaymentDetailResponse.result?.$case !== "insertResult") {
+  //     throw new GrpcError({
+  //       code: Status.INTERNAL,
+  //       details: `Invalid query response`,
+  //     });
+  //   }
 
-    const insertPayment: Partial<Query> = {
-      query: {
-        $case: "insert",
-        insert: {
-          schema: this.schemaName,
-          table: this.tableName,
-          columnValue: [
-            {
-              column: "user_id",
-              value: Util.toIntValue(payee?.userId!),
-            },
-            {
-              column: "most_recent_detail_id",
-              value: Util.toIntValue(detailId),
-            },
-            {
-              column: "create_date",
-              value: Util.toDatetimeValue("CURRENT"),
-            },
-            {
-              column: "modify_date",
-              value: Util.toDatetimeValue("CURRENT"),
-            },
-            {
-              column: "has_global_ad",
-              value: Util.toStringValue("f"),
-            },
-          ],
-          idTable: this.tableName,
-          idColumn: "payment_id",
-          idSequence: "PAYMENT_SEQ",
-        },
-      },
-    };
+  //   // prettier-ignore
+  //   const detailId: number = createPaymentDetailResponse.result.insertResult.lastInsertId;
 
-    const createPaymentResponse = await relationalClient.query({
-      query: insertPayment,
-    });
+  //   const insertPayment: Partial<Query> = {
+  //     query: {
+  //       $case: "insert",
+  //       insert: {
+  //         schema: this.schemaName,
+  //         table: this.tableName,
+  //         columnValue: [
+  //           {
+  //             column: "user_id",
+  //             value: Util.toIntValue(payee?.userId!),
+  //           },
+  //           {
+  //             column: "most_recent_detail_id",
+  //             value: Util.toIntValue(detailId),
+  //           },
+  //           {
+  //             column: "create_date",
+  //             value: Util.toDatetimeValue("CURRENT"),
+  //           },
+  //           {
+  //             column: "modify_date",
+  //             value: Util.toDatetimeValue("CURRENT"),
+  //           },
+  //           {
+  //             column: "has_global_ad",
+  //             value: Util.toStringValue("f"),
+  //           },
+  //         ],
+  //         idTable: this.tableName,
+  //         idColumn: "payment_id",
+  //         idSequence: "PAYMENT_SEQ",
+  //       },
+  //     },
+  //   };
 
-    if (createPaymentResponse.result?.$case !== "insertResult") {
-      throw new GrpcError({
-        code: Status.INTERNAL,
-        details: `Invalid query response`,
-      });
-    }
+  //   const createPaymentResponse = await relationalClient.query({
+  //     query: insertPayment,
+  //   });
 
-    const paymentId: number = createPaymentResponse.result.insertResult.lastInsertId;
+  //   if (createPaymentResponse.result?.$case !== "insertResult") {
+  //     throw new GrpcError({
+  //       code: Status.INTERNAL,
+  //       details: `Invalid query response`,
+  //     });
+  //   }
 
-    const insertPaymentDetailXref: Partial<Query> = {
-      query: {
-        $case: "insert",
-        insert: {
-          schema: this.schemaName,
-          table: "payment_detail_xref",
-          columnValue: [
-            {
-              column: "payment_id",
-              value: Util.toIntValue(paymentId),
-            },
-            {
-              column: "payment_detail_id",
-              value: Util.toIntValue(detailId),
-            },
-          ],
-        },
-      },
-    };
+  //   const paymentId: number = createPaymentResponse.result.insertResult.lastInsertId;
 
-    await relationalClient.query({ query: insertPaymentDetailXref });
+  //   const insertPaymentDetailXref: Partial<Query> = {
+  //     query: {
+  //       $case: "insert",
+  //       insert: {
+  //         schema: this.schemaName,
+  //         table: "payment_detail_xref",
+  //         columnValue: [
+  //           {
+  //             column: "payment_id",
+  //             value: Util.toIntValue(paymentId),
+  //           },
+  //           {
+  //             column: "payment_detail_id",
+  //             value: Util.toIntValue(detailId),
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   };
 
-    const insertPaymentDetailStatusReasonXref: Partial<Query> = {
-      query: {
-        $case: "insert",
-        insert: {
-          schema: this.schemaName,
-          table: "payment_detail_status_reason_xref",
-          columnValue: [
-            {
-              column: "payment_detail_id",
-              value: Util.toIntValue(detailId),
-            },
-            {
-              column: "payment_status_reason_id",
-              value: Util.toIntValue(500), // Created By v5
-            },
-          ],
-        },
-      },
-    };
+  //   await relationalClient.query({ query: insertPaymentDetailXref });
 
-    await relationalClient.query({
-      query: insertPaymentDetailStatusReasonXref,
-    });
+  //   const insertPaymentDetailStatusReasonXref: Partial<Query> = {
+  //     query: {
+  //       $case: "insert",
+  //       insert: {
+  //         schema: this.schemaName,
+  //         table: "payment_detail_status_reason_xref",
+  //         columnValue: [
+  //           {
+  //             column: "payment_detail_id",
+  //             value: Util.toIntValue(detailId),
+  //           },
+  //           {
+  //             column: "payment_status_reason_id",
+  //             value: Util.toIntValue(500), // Created By v5
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   };
 
-    return {
-      paymentId,
-      userId: payee?.userId!,
-      mostRecentPaymentDetailId: detailId,
-    };
-  }
+  //   await relationalClient.query({
+  //     query: insertPaymentDetailStatusReasonXref,
+  //   });
+
+  //   return {
+  //     paymentId,
+  //     userId: payee?.userId!,
+  //     mostRecentPaymentDetailId: detailId,
+  //   };
+  // }
 
   private async getPaymentWithDetails(lookupCriteria: LookupCriteria): Promise<Payment> {
     if (lookupCriteria.key != "payment_id") {
@@ -431,15 +430,17 @@ class PaymentDomain {
       },
     };
 
-    const { result } = await relationalClient.query({ query });
-    if (result?.$case != "selectResult") {
+    const transaction = queryRunner.beginTransaction();
+    const queryResult = await transaction.add(query);
+
+    if (queryResult.rows?.length === 0) {
       throw new GrpcError({
         code: Status.INTERNAL,
         details: "Unexpected query response",
       });
     }
 
-    const { rows } = result.selectResult;
+    const { rows } = queryResult;
     console.log("Response from Server", JSON.stringify(rows));
 
     return Promise.resolve({} as Payment);

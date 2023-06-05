@@ -1,4 +1,5 @@
 import { ColumnType, Schema } from "@topcoder-framework/client-relational";
+import { PaymentDetailStatusReasonXref } from "../models/domain-layer/payment/payment_detail";
 
 export const PaymentDetailStatusReasonXrefSchema: Schema<PaymentDetailStatusReasonXref> = {
   dbSchema: "informixoltp",

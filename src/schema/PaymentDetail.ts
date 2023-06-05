@@ -1,4 +1,4 @@
-import { PaymentDetail } from "@Model/domain-layer/payment/payment_detail";
+import { PaymentDetail } from "../models/domain-layer/payment/payment_detail";
 import { ColumnType, Schema } from "@topcoder-framework/client-relational";
 
 export const PaymentDetailSchema: Schema<PaymentDetail> = {
@@ -90,6 +90,6 @@ export const PaymentDetailSchema: Schema<PaymentDetail> = {
       name: "digital_run_track_id",
     },
     jiraIssueId: { type: ColumnType.COLUMN_TYPE_STRING, name: "jira_issue_id" },
-    userId: { type: ColumnType.COLUMN_TYPE_LONG, name: "create_user" },
+    createUser: { type: ColumnType.COLUMN_TYPE_LONG, name: "create_user" },
   },
 };
